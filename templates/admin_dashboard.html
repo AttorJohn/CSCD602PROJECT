@@ -34,6 +34,28 @@
 
   <div class="card">
     <h2>Collection Requests</h2>
+    <div class="stats-grid" aria-label="Request status summary">
+      {% for status in statuses %}
+        <div class="stat-card">
+          <span class="stat-count">{{ status_counts[status] }}</span>
+          <span class="status status-{{ status }}">{{ status|replace("_", " ")|title }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <form method="get" action="{{ url_for('admin.dashboard') }}" class="filter-form">
+      <label for="status-filter">Filter by status</label>
+      <select id="status-filter" name="status">
+        <option value="">All requests</option>
+        {% for status in statuses %}
+          <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status|replace("_", " ")|title }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm btn-primary">Apply filter</button>
+      {% if selected_status %}
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline">Clear filter</a>
+      {% endif %}
+    </form>
 
     {% if requests %}
       <div class="table-responsive">
@@ -51,7 +73,7 @@
           </thead>
           <tbody>
             {% for r in requests %}
-              <tr>
+              <tr data-request-status="{{ r.status }}">
                 <td>#{{ "%04d"|format(r.id) }}</td>
                 <td>{{ r.resident.name }}</td>
                 <td>{{ r.waste_type|capitalize }}</td>

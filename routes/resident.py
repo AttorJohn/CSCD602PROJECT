@@ -89,6 +89,24 @@ def new_request():
     )
 
 
+@resident_bp.route("/requests/<int:request_id>/cancel", methods=["POST"])
+@resident_required
+def cancel_request(request_id):
+    """Let a resident cancel only their own pending request."""
+    collection_request = CollectionRequest.query.filter_by(
+        id=request_id, user_id=current_user.id
+    ).first_or_404()
+
+    if collection_request.status != "pending":
+        flash("Only pending collection requests can be cancelled.", "error")
+        return redirect(url_for("resident.dashboard"))
+
+    collection_request.status = "cancelled"
+    db.session.commit()
+    flash(f"Request #{collection_request.id:04d} has been cancelled.", "success")
+    return redirect(url_for("resident.dashboard"))
+
+
 @resident_bp.route("/account/delete", methods=["POST"])
 @resident_required
 def delete_account():

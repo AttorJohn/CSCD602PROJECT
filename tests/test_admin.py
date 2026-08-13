@@ -133,3 +133,34 @@ def test_invalid_status_transition_rejected(client, app):
         from models.request import CollectionRequest
         unchanged = db.session.get(CollectionRequest, req_id)
         assert unchanged.status == "pending"
+
+
+def test_admin_can_filter_requests_and_see_status_statistics(client, app):
+    _make_admin(app)
+    with app.app_context():
+        from datetime import date
+        from models import db
+        from models.request import CollectionRequest
+        from models.user import User
+
+        resident = User(
+            name="Dashboard Resident",
+            email="dashboard@example.com",
+            password_hash="not-used",
+            role="resident",
+        )
+        db.session.add(resident)
+        db.session.flush()
+        db.session.add_all([
+            CollectionRequest(user_id=resident.id, address="Pending address", waste_type="household", preferred_date=date(2027, 1, 1), status="pending"),
+            CollectionRequest(user_id=resident.id, address="Assigned address", waste_type="household", preferred_date=date(2027, 1, 1), status="assigned"),
+            CollectionRequest(user_id=resident.id, address="Collected address", waste_type="household", preferred_date=date(2027, 1, 1), status="collected"),
+        ])
+        db.session.commit()
+
+    _login(client, "admin@example.com", "adminpass1")
+    response = client.get("/admin/?status=pending")
+    assert b'data-request-status="pending"' in response.data
+    assert b'data-request-status="assigned"' not in response.data
+    assert b'data-request-status="collected"' not in response.data
+    assert b">1</span>" in response.data

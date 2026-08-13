@@ -23,6 +23,7 @@
               <th>Waste Type</th>
               <th>Description</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -33,6 +34,16 @@
                 <td>{{ r.waste_type|capitalize }}</td>
                 <td>{{ r.description or "—" }}</td>
                 <td><span class="status status-{{ r.status }}">{{ r.status|replace("_", " ")|title }}</span></td>
+                <td>
+                  {% if r.status == "pending" %}
+                    <form method="post" action="{{ url_for('resident.cancel_request', request_id=r.id) }}" class="row-form" data-confirm="Cancel request #{{ '%04d'|format(r.id) }}?">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-danger" data-submit-label="Cancelling…">Cancel request</button>
+                    </form>
+                  {% else %}
+                    <span class="muted">—</span>
+                  {% endif %}
+                </td>
               </tr>
             {% endfor %}
           </tbody>

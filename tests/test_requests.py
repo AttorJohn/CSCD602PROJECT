@@ -110,3 +110,32 @@ def test_account_deletion_requires_the_current_password(client, app):
     with app.app_context():
         from models.user import User
         assert User.query.filter_by(email="keep-me@example.com").first() is not None
+
+
+def test_resident_can_cancel_their_own_pending_request(client, app):
+    _register_and_login(client)
+    client.post(
+        "/dashboard/new",
+        data={"address": "12 Ring Rd", "waste_type": "household", "preferred_date": "2027-01-01", "description": ""},
+        follow_redirects=True,
+    )
+    response = client.post("/dashboard/requests/1/cancel", follow_redirects=True)
+    assert b"has been cancelled" in response.data
+
+    with app.app_context():
+        from models import db
+        from models.request import CollectionRequest
+        assert db.session.get(CollectionRequest, 1).status == "cancelled"
+
+
+def test_resident_cannot_cancel_another_residents_request(client):
+    _register_and_login(client, email="first-cancel@example.com")
+    client.post(
+        "/dashboard/new",
+        data={"address": "12 Ring Rd", "waste_type": "household", "preferred_date": "2027-01-01", "description": ""},
+        follow_redirects=True,
+    )
+    client.post("/logout", follow_redirects=True)
+    _register_and_login(client, email="second-cancel@example.com")
+    response = client.post("/dashboard/requests/1/cancel")
+    assert response.status_code == 404

@@ -8,7 +8,7 @@ request state diagram (Project Documentation, Section 3.4).
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from routes.decorators import admin_required
 from models import db
-from models.request import CollectionRequest
+from models.request import CollectionRequest, VALID_STATUSES
 from models.collector import Collector
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -27,7 +27,20 @@ ALLOWED_TRANSITIONS = {
 @admin_bp.route("/")
 @admin_required
 def dashboard():
-    requests = CollectionRequest.query.order_by(CollectionRequest.created_at.desc()).all()
+    selected_status = request.args.get("status", "").strip().lower()
+    if selected_status not in VALID_STATUSES:
+        selected_status = ""
+
+    all_requests = CollectionRequest.query.order_by(CollectionRequest.created_at.desc()).all()
+    requests = (
+        [collection_request for collection_request in all_requests if collection_request.status == selected_status]
+        if selected_status
+        else all_requests
+    )
+    status_counts = {
+        status: sum(collection_request.status == status for collection_request in all_requests)
+        for status in VALID_STATUSES
+    }
     collectors = Collector.query.order_by(Collector.name).all()
     available_collectors = [collector for collector in collectors if collector.status == "available"]
     return render_template(
@@ -35,6 +48,9 @@ def dashboard():
         requests=requests,
         collectors=collectors,
         available_collectors=available_collectors,
+        status_counts=status_counts,
+        statuses=VALID_STATUSES,
+        selected_status=selected_status,
     )
 
 

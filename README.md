@@ -4,27 +4,32 @@ Web-based waste collection request & tracking system.
 CSCD602 Advanced Software Engineering — Individual Project Examination.
 
 ## Current status
-Step 4 of the build plan complete: minimal Flask app runs and serves
-a Hello World page. See `Project_Documentation` for the full
-requirements, estimation, design and technical debt plan behind
-this project.
+Step 5 of the build plan complete: SQLite database wired up via
+SQLAlchemy, with User, CollectionRequest and Collector models
+matching the ER diagram (Project Documentation, Section 3.5). Visit
+`/db-check` after starting the app to confirm the database connected
+and the tables were created. See `Project_Documentation` for the
+full requirements, estimation, design and technical debt plan
+behind this project.
 
 ## Run it locally
 1. Create and activate a virtual environment:
    - Windows: `python -m venv .venv` then `.venv\Scripts\activate`
 2. Install dependencies: `pip install -r requirements.txt`
 3. Run the app: `python app.py`
-4. Open http://127.0.0.1:5000 in your browser
+4. Open http://127.0.0.1:5000 — should show the Hello World message
+5. Open http://127.0.0.1:5000/db-check — should show
+   "Database connected. Users table has 0 row(s)."
+6. Check that `instance/wastetrack.db` now exists in your project folder
 
 ## Build plan (from Project Documentation, Section 2.6)
 - [x] Step 1: Project setup & Git
 - [x] Step 2: Virtual environment
 - [x] Step 3: Install Flask
 - [x] Step 4: Minimal "Hello, WasteTrack!" app
-- [ ] Step 5: Add the database (SQLAlchemy + SQLite)
-- [ ] Step 6: User model
-- [ ] Step 7: Registration
-- [ ] Step 8: Login/logout
+- [x] Step 5: Add the database (SQLAlchemy + SQLite) - User, CollectionRequest, Collector models created together since they share one ER diagram
+- [ ] Step 6: Registration
+- [ ] Step 7: Login/logout
 - [ ] Step 9: Role-based authorisation
 - [ ] Step 10: Resident dashboard
 - [ ] Step 11: Collection requests

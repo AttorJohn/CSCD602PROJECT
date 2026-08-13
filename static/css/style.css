@@ -64,22 +64,43 @@ a { color: var(--color-primary); }
   justify-content: space-between;
   align-items: center;
 }
+.header-start {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #ffffff;
   font-weight: 700;
   font-size: 1.15rem;
   text-decoration: none;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
+.brand strong { color: #7dd3fc; font-weight: 700; }
 .brand-mark {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  background: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 5px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 9px;
+  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.22);
+}
+.brand-mark svg { width: 100%; height: 100%; }
+.home-tab {
+  color: #cbd5e1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.home-tab:hover, .home-tab:focus-visible { color: #ffffff; }
 }
 .nav-links {
   display: flex;
@@ -377,6 +398,7 @@ form textarea { resize: vertical; }
 /* ---------- Mobile ---------- */
 @media (max-width: 720px) {
   .site-header-inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .header-start { gap: 16px; }
   .nav-links { flex-wrap: wrap; gap: 12px; }
   .hero h1 { font-size: 1.8rem; }
   .hero-inner { padding: var(--space-12) 20px; }

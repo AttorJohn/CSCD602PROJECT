@@ -1,0 +1,189 @@
+WASTETRACK GHANA
+TESTING REPORT AND USER MANUAL
+================================
+
+Project: WasteTrack Ghana - Web-Based Waste Collection Request and Tracking System
+Test framework: pytest
+Latest verification: 20 automated tests passed
+
+
+PART 1: TESTING REPORT
+======================
+
+1. Purpose
+----------
+This report records the automated testing carried out for the core WasteTrack Ghana workflows. Tests use a fresh in-memory SQLite database, so they do not change the production/local database stored in instance/.
+
+2. How to Run the Tests
+-----------------------
+1. Open a terminal in the project folder.
+2. Activate the virtual environment:
+   Windows: .venv\Scripts\activate
+3. Run:
+   pytest -q
+
+Expected result:
+20 passed
+
+3. Test Coverage Summary
+------------------------
+
+Authentication and authorisation
+- A resident can register successfully.
+- Passwords are stored as hashes rather than plain text.
+- Duplicate email registration is rejected.
+- Login fails with an incorrect password.
+- A resident is redirected to their dashboard after login.
+- An unauthenticated user is redirected to login when attempting to access protected pages.
+- A resident cannot access the admin dashboard.
+- Logout requires a POST request.
+
+Collection-request validation and resident features
+- A request cannot be submitted without an address.
+- A request cannot use a past preferred date.
+- A request cannot use an invalid waste type.
+- A valid request is displayed on the resident dashboard.
+- A resident cannot see another resident's requests.
+- A resident can cancel their own pending request.
+- A resident cannot cancel another resident's request.
+- A resident can delete their account and associated request history after entering the correct password.
+- Account deletion is rejected when the password is incorrect.
+
+Administration and request lifecycle
+- An administrator can add a collector and assign an available collector to a pending request.
+- An assigned collector becomes busy and becomes available again after the request is collected.
+- Invalid lifecycle transitions, such as Pending directly to Collected, are rejected.
+- An administrator can filter requests by status.
+- The admin dashboard displays counts for all request statuses.
+
+4. Request Lifecycle Verified
+-----------------------------
+Pending -> Assigned -> In Progress -> Collected
+Pending -> Cancelled
+
+The application checks these transitions on the server. A user cannot bypass the lifecycle by changing buttons or sending an invalid form value.
+
+5. Security Checks Included
+---------------------------
+- Passwords use Werkzeug salted password hashes.
+- Role-based access control is applied server-side.
+- State-changing forms use CSRF tokens.
+- Logout uses a protected POST form.
+- Account deletion requires the user's current password and explicit confirmation.
+
+6. Known Limitations / Future Work
+----------------------------------
+- SQLite is appropriate for this prototype but PostgreSQL is recommended for a deployed multi-user system.
+- The system does not yet send resident notifications when status changes.
+- Photo attachments and GPS location capture are not included in Version 1.
+- Collector assignment is manual; automatic assignment is future work.
+- Production deployment still requires configuration on a platform such as Render.
+
+
+PART 2: USER MANUAL
+===================
+
+1. Starting the Application Locally
+-----------------------------------
+1. Open a terminal in the project folder.
+2. Activate the virtual environment:
+   Windows: .venv\Scripts\activate
+3. Install dependencies if needed:
+   pip install -r requirements.txt
+4. Start the application:
+   python app.py
+5. Open the local address shown in the terminal, normally:
+   http://127.0.0.1:5000
+
+Before deployment, create a .env file based on .env.example and set a strong SECRET_KEY.
+
+2. Resident Guide
+-----------------
+
+Create an account
+1. Select Register from the home page.
+2. Enter your name, email address, and a password of at least six characters.
+3. Select Register.
+4. Log in using the account you created.
+
+Submit a collection request
+1. From My Dashboard, select + New Collection Request.
+2. Enter your address.
+3. Select a waste type.
+4. Choose a preferred date that is today or later.
+5. Add an optional description, such as the type or size of waste.
+6. Select Submit Request.
+
+Track a request
+1. Open My Dashboard.
+2. Review the request table. It shows the request ID, preferred date, waste type, description, and current status.
+3. Statuses mean:
+   - Pending: submitted and waiting for assignment.
+   - Assigned: a collector has been allocated.
+   - In Progress: the collection has started.
+   - Collected: the collection is complete.
+   - Cancelled: the request will not be collected.
+
+Cancel a pending request
+1. Find the request in My Dashboard.
+2. Select Cancel request while its status is Pending.
+3. Confirm the prompt.
+4. The status changes to Cancelled.
+
+Only pending requests can be cancelled. Requests that have already been assigned or started cannot be cancelled by a resident.
+
+Delete your account
+1. Go to the bottom of My Dashboard.
+2. In Delete account, enter your current password.
+3. Select Delete my account.
+4. Confirm the prompt.
+
+Warning: this permanently deletes the resident account and all of its collection-request history. It cannot be undone.
+
+3. Administrator Guide
+----------------------
+
+Create an administrator account
+Run this command from the project folder:
+
+flask --app app create-admin "Admin Name" admin@example.com a-strong-password
+
+If the email already belongs to an account, the command promotes that account to administrator.
+
+Add a collector
+1. Log in with an administrator account.
+2. On the Admin Dashboard, enter the collector's name and optional phone number.
+3. Select Add Collector.
+
+Assign a collector
+1. Find a Pending request in Collection Requests.
+2. Choose an available collector from the list.
+3. Select Assign.
+4. The request becomes Assigned and the collector becomes Busy.
+
+Update request status
+1. For an Assigned request, select Start collection and confirm.
+2. For an In Progress request, select Mark collected and confirm.
+3. When a request is marked Collected, its collector becomes Available again.
+4. For a Pending request, an administrator may select Cancel request and confirm.
+
+Filter requests and read statistics
+1. Use Filter by status to show only requests of a selected status.
+2. Select Apply filter.
+3. Use Clear filter to return to all requests.
+4. The summary cards show current counts for Pending, Assigned, In Progress, Collected, and Cancelled requests.
+
+4. General Navigation
+---------------------
+- Use the WasteTrack Ghana logo to return to the home page.
+- Use Dashboard or Admin Dashboard in the header to return to the correct workspace.
+- Login and registration pages contain a Back to home link.
+- The new-request page contains a Back to dashboard link.
+- Use Logout in the header to end the current session.
+
+5. Troubleshooting
+------------------
+- If a page says you do not have permission, log in with the correct role.
+- If a form says it could not be verified, refresh the page and try again. This protects against invalid form submissions.
+- If a collector cannot be selected, all collectors may be busy. Add a collector or complete an in-progress request first.
+- If the app does not start, ensure the virtual environment is active and dependencies have been installed.

@@ -3,9 +3,9 @@
 {% block content %}
 <div class="container container-narrow auth-page">
   <div class="card">
-    <h1>Create an account</h1>
+    <h1>Create {{ portal }} account</h1>
 
-    <form method="post" action="{{ url_for('auth.register') }}" novalidate>
+    <form method="post" action="{{ url_for('auth.register_collector') if portal == 'collector' else url_for('auth.register') }}" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="name">Name</label>
       <input type="text" id="name" name="name" value="{{ name }}" required>
@@ -13,13 +13,18 @@
       <label for="email">Email</label>
       <input type="email" id="email" name="email" value="{{ email }}" required>
 
+      {% if portal == "collector" %}
+        <label for="phone">Phone number</label>
+        <input type="tel" id="phone" name="phone" value="{{ phone }}" required>
+      {% endif %}
+
       <label for="password">Password</label>
       <input type="password" id="password" name="password" required minlength="6">
 
       <button type="submit" class="btn btn-primary btn-block">Register</button>
     </form>
 
-    <p class="form-footnote">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+    <p class="form-footnote">Already have an account? <a href="{{ url_for('auth.login', portal=portal) }}">Log in</a></p>
     <a class="back-link" href="{{ url_for('home') }}">&larr; Back to home</a>
   </div>
 </div>

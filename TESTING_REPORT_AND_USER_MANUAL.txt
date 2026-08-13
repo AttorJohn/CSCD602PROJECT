@@ -4,7 +4,22 @@ TESTING REPORT AND USER MANUAL
 
 Project: WasteTrack Ghana - Web-Based Waste Collection Request and Tracking System
 Test framework: pytest
-Latest verification: 20 automated tests passed
+Latest verification: 24 automated tests passed
+
+POST-DESIGN IMPLEMENTATION UPDATES
+----------------------------------
+The following features were added after the original requirements/design documentation was produced. They extend the Version 1 implementation without changing the core waste-request lifecycle.
+
+- Separate home-page access portals for Resident, Collector, and Administrator.
+- Collector self-registration with a collector profile (name, email, phone number, and password).
+- Collector dashboard for viewing only assigned requests and progressing assigned -> in progress -> collected.
+- Optional image upload for waste requests; resident, assigned collector, and administrator can view the image.
+- Audit logging for key operations, shown to administrators as Recent activity.
+- Resident cancellation of their own pending requests.
+- Resident account deletion with password confirmation; associated requests and uploaded photos are removed.
+- Admin request filtering by status and status-count summary cards.
+- CSRF protection for state-changing forms, POST-only logout, safer configuration through environment variables, and a 5 MB upload limit.
+- Clearer action instructions, confirmation prompts, progress labels, and back-navigation links.
 
 
 PART 1: TESTING REPORT
@@ -23,7 +38,7 @@ This report records the automated testing carried out for the core WasteTrack Gh
    pytest -q
 
 Expected result:
-20 passed
+24 passed
 
 3. Test Coverage Summary
 ------------------------
@@ -48,6 +63,8 @@ Collection-request validation and resident features
 - A resident cannot cancel another resident's request.
 - A resident can delete their account and associated request history after entering the correct password.
 - Account deletion is rejected when the password is incorrect.
+- A request can include an optional image upload.
+- Request creation and cancellation create audit-log entries.
 
 Administration and request lifecycle
 - An administrator can add a collector and assign an available collector to a pending request.
@@ -55,6 +72,14 @@ Administration and request lifecycle
 - Invalid lifecycle transitions, such as Pending directly to Collected, are rejected.
 - An administrator can filter requests by status.
 - The admin dashboard displays counts for all request statuses.
+- Audit activity is available to administrators, including request creation, cancellation, collector creation, assignment, and status changes.
+
+Collector portal and assigned-work controls
+- A collector can create a self-service collector account with a phone profile.
+- A collector can log in through the collector portal and view only their assigned requests.
+- A collector can move only their assigned request from Assigned to In Progress.
+- A collector cannot use the collector login portal with a resident account.
+- Collector status updates create audit-log entries.
 
 4. Request Lifecycle Verified
 -----------------------------
@@ -70,14 +95,17 @@ The application checks these transitions on the server. A user cannot bypass the
 - State-changing forms use CSRF tokens.
 - Logout uses a protected POST form.
 - Account deletion requires the user's current password and explicit confirmation.
+- Uploaded images are limited to JPG, PNG, and WebP formats, with a maximum size of 5 MB.
+- Uploaded request photos are protected: only the request's resident, assigned collector, or an administrator can view them.
 
 6. Known Limitations / Future Work
 ----------------------------------
 - SQLite is appropriate for this prototype but PostgreSQL is recommended for a deployed multi-user system.
 - The system does not yet send resident notifications when status changes.
-- Photo attachments and GPS location capture are not included in Version 1.
+- Photo attachments are supported, but GPS location capture is not included in Version 1.
 - Collector assignment is manual; automatic assignment is future work.
 - Production deployment still requires configuration on a platform such as Render.
+- The original design stated that collectors did not log in. The implementation now deliberately extends that design with collector accounts and a restricted collector dashboard.
 
 
 PART 2: USER MANUAL
@@ -96,6 +124,8 @@ PART 2: USER MANUAL
    http://127.0.0.1:5000
 
 Before deployment, create a .env file based on .env.example and set a strong SECRET_KEY.
+
+The application accepts uploaded images of up to 5 MB. In production, ensure the instance/uploads directory is stored on persistent storage so request photos are retained after redeployment.
 
 2. Resident Guide
 -----------------
@@ -131,6 +161,14 @@ Cancel a pending request
 4. The status changes to Cancelled.
 
 Only pending requests can be cancelled. Requests that have already been assigned or started cannot be cancelled by a resident.
+
+Add a waste photo
+1. While creating a new collection request, use Photo of the waste (optional).
+2. Select a JPG, PNG, or WebP image that is 5 MB or smaller.
+3. Submit the request normally.
+4. Select View photo in the dashboard to open an uploaded image.
+
+The image helps a collector identify the waste before pickup.
 
 Delete your account
 1. Go to the bottom of My Dashboard.
@@ -173,17 +211,46 @@ Filter requests and read statistics
 3. Use Clear filter to return to all requests.
 4. The summary cards show current counts for Pending, Assigned, In Progress, Collected, and Cancelled requests.
 
-4. General Navigation
+Review audit activity
+1. Scroll to Recent activity at the bottom of the Admin Dashboard.
+2. Review the time, actor, action, related request ID, and details for recent events.
+3. Use this record to monitor request creation, cancellations, collector registration/assignment, and status changes.
+
+4. Collector Guide
+-------------------
+
+Create a collector account
+1. From the home page, select Join as a collector.
+2. Enter your name, email address, phone number, and password.
+3. Select Register.
+4. Return to the home page and select Collector login.
+
+View assigned work
+1. Log in through Collector login.
+2. The Collector Dashboard lists only the requests assigned to your collector profile.
+3. Review the address, waste type, description, optional photo, and current status.
+
+Update collection progress
+1. For an Assigned request, select Start collection and confirm.
+2. When the waste has been collected, select Mark collected and confirm.
+3. The system records the change in the audit log and marks the collector Available after completion.
+
+Collectors cannot view or update requests assigned to another collector. They cannot assign themselves to a request; an administrator performs assignment.
+
+5. General Navigation
 ---------------------
-- Use the WasteTrack Ghana logo to return to the home page.
+- Use the WasteTrack Ghana logo or Home tab to return to the home page.
 - Use Dashboard or Admin Dashboard in the header to return to the correct workspace.
+- Collectors have a Collector Dashboard link in the header.
 - Login and registration pages contain a Back to home link.
 - The new-request page contains a Back to dashboard link.
 - Use Logout in the header to end the current session.
 
-5. Troubleshooting
+6. Troubleshooting
 ------------------
 - If a page says you do not have permission, log in with the correct role.
 - If a form says it could not be verified, refresh the page and try again. This protects against invalid form submissions.
 - If a collector cannot be selected, all collectors may be busy. Add a collector or complete an in-progress request first.
+- If you cannot open a request photo, make sure you are logged in as that request's resident, its assigned collector, or an administrator.
+- If you use the wrong login portal, the system will reject the login. Select the matching Resident, Collector, or Administrator portal from the home page.
 - If the app does not start, ensure the virtual environment is active and dependencies have been installed.

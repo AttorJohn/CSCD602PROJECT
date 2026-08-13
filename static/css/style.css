@@ -101,7 +101,6 @@ a { color: var(--color-primary); }
   text-decoration: none;
 }
 .home-tab:hover, .home-tab:focus-visible { color: #ffffff; }
-}
 .nav-links {
   display: flex;
   align-items: center;
@@ -278,6 +277,13 @@ form textarea { resize: vertical; }
   margin: 0 auto var(--space-8);
 }
 .hero-actions { display: flex; gap: var(--space-3); justify-content: center; }
+.portal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); max-width: 960px; margin: 0 auto; text-align: left; }
+.portal-card { display: flex; flex-direction: column; min-height: 260px; padding: var(--space-6); background: rgba(255,255,255,.85); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+.portal-icon { color: var(--color-primary); font-size: 1.6rem; }
+.portal-card h2 { margin: var(--space-3) 0 8px; font-size: 1.15rem; }
+.portal-card p { flex: 1; color: var(--color-text-muted); font-size: .9rem; }
+.portal-link, .portal-note { margin-top: var(--space-3); font-size: .85rem; }
+.portal-note { color: var(--color-text-muted); }
 
 /* ---------- Steps (how it works) ---------- */
 .steps-inner {
@@ -406,6 +412,7 @@ form textarea { resize: vertical; }
   .hero h1 { font-size: 1.8rem; }
   .hero-inner { padding: var(--space-12) 20px; }
   .steps-inner { grid-template-columns: 1fr; }
+  .portal-grid { grid-template-columns: 1fr; }
   .card { padding: var(--space-6); }
   .page-head { flex-direction: column; align-items: flex-start; }
   .row-form { display: flex; }

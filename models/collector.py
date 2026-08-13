@@ -6,6 +6,7 @@ class Collector(db.Model):
     __tablename__ = "collectors"
 
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, unique=True)
     name = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(30), nullable=True)
     status = db.Column(db.String(20), nullable=False, default="available")  # available | busy
@@ -14,6 +15,7 @@ class Collector(db.Model):
     requests = db.relationship(
         "CollectionRequest", back_populates="collector", lazy="dynamic"
     )
+    user = db.relationship("User", back_populates="collector_profile")
 
     def __repr__(self):
         return f"<Collector {self.name}>"

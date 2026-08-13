@@ -28,6 +28,8 @@
         {% if current_user.is_authenticated %}
           {% if current_user.role == "resident" %}
             <a href="{{ url_for('resident.dashboard') }}">Dashboard</a>
+          {% elif current_user.role == "collector" %}
+            <a href="{{ url_for('collector.dashboard') }}">Collector Dashboard</a>
           {% elif current_user.role == "admin" %}
             <a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
           {% endif %}

@@ -21,6 +21,7 @@ from models import db
 from routes.auth import auth_bp
 from routes.resident import resident_bp
 from routes.admin import admin_bp
+from routes.collector import collector_bp
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -41,6 +42,10 @@ def create_app(test_config=None):
         request_columns = {column["name"] for column in inspect(db.engine).get_columns("requests")}
         if "photo_filename" not in request_columns:
             db.session.execute(text("ALTER TABLE requests ADD COLUMN photo_filename VARCHAR(255)"))
+            db.session.commit()
+        collector_columns = {column["name"] for column in inspect(db.engine).get_columns("collectors")}
+        if "user_id" not in collector_columns:
+            db.session.execute(text("ALTER TABLE collectors ADD COLUMN user_id INTEGER"))
             db.session.commit()
 
     login_manager = LoginManager()
@@ -72,6 +77,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth_bp)
     app.register_blueprint(resident_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(collector_bp)
 
     @app.route("/")
     def home():
@@ -83,7 +89,12 @@ def create_app(test_config=None):
         from models.request import CollectionRequest
 
         collection_request = db.get_or_404(CollectionRequest, request_id)
-        if current_user.role != "admin" and collection_request.user_id != current_user.id:
+        collector_owns_request = (
+            current_user.role == "collector"
+            and current_user.collector_profile
+            and collection_request.collector_id == current_user.collector_profile.id
+        )
+        if current_user.role != "admin" and collection_request.user_id != current_user.id and not collector_owns_request:
             abort(403)
         if not collection_request.photo_filename:
             abort(404)

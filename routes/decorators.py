@@ -29,3 +29,13 @@ def resident_required(view_func):
             abort(403)
         return view_func(*args, **kwargs)
     return wrapped
+
+
+def collector_required(view_func):
+    @wraps(view_func)
+    @login_required
+    def wrapped(*args, **kwargs):
+        if current_user.role != "collector":
+            abort(403)
+        return view_func(*args, **kwargs)
+    return wrapped

@@ -11,13 +11,14 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False, default="resident")  # "resident" | "admin"
+    role = db.Column(db.String(20), nullable=False, default="resident")  # resident | collector | admin
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # One resident -> many requests (Section 3.5, USER 1 --- * REQUEST)
     requests = db.relationship(
         "CollectionRequest", back_populates="resident", lazy="dynamic"
     )
+    collector_profile = db.relationship("Collector", back_populates="user", uselist=False)
 
     def __repr__(self):
         return f"<User {self.email} ({self.role})>"

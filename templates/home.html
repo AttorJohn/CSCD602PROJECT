@@ -19,11 +19,34 @@
           <div class="hero-actions">
             <a class="btn btn-primary" href="{{ url_for('admin.dashboard') }}">Go to admin dashboard</a>
           </div>
+        {% elif current_user.role == "collector" %}
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="{{ url_for('collector.dashboard') }}">Go to collector dashboard</a>
+          </div>
         {% endif %}
       {% else %}
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="{{ url_for('auth.login') }}">Login</a>
-          <a class="btn btn-outline" href="{{ url_for('auth.register') }}">Create an account</a>
+        <div class="portal-grid">
+          <article class="portal-card">
+            <span class="portal-icon" aria-hidden="true">⌂</span>
+            <h2>Resident</h2>
+            <p>Submit collection requests and track every pickup.</p>
+            <a class="btn btn-primary" href="{{ url_for('auth.login', portal='resident') }}">Resident login</a>
+            <a class="portal-link" href="{{ url_for('auth.register') }}">Create resident account</a>
+          </article>
+          <article class="portal-card">
+            <span class="portal-icon" aria-hidden="true">♻</span>
+            <h2>Collector</h2>
+            <p>Create your profile, see assigned work, and update pickups.</p>
+            <a class="btn btn-primary" href="{{ url_for('auth.login', portal='collector') }}">Collector login</a>
+            <a class="portal-link" href="{{ url_for('auth.register_collector') }}">Join as a collector</a>
+          </article>
+          <article class="portal-card">
+            <span class="portal-icon" aria-hidden="true">◆</span>
+            <h2>Administrator</h2>
+            <p>Assign collectors, manage requests, and review activity.</p>
+            <a class="btn btn-outline" href="{{ url_for('auth.login', portal='admin') }}">Admin login</a>
+            <span class="portal-note">Accounts are created by the system owner.</span>
+          </article>
         </div>
       {% endif %}
     </div>

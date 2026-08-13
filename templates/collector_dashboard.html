@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Collector Dashboard - WasteTrack Ghana{% endblock %}
+{% block content %}
+<div class="container container-wide">
+  <div class="page-head">
+    <div>
+      <h1>Welcome, {{ current_user.name }}</h1>
+      <p class="page-subtitle">Your collector profile: {{ collector.phone }} · <span class="status status-{{ collector.status }}">{{ collector.status|title }}</span></p>
+    </div>
+  </div>
+  <div class="card">
+    <h2>My assigned collections</h2>
+    {% if requests %}
+      <div class="table-responsive">
+        <table class="requests-table">
+          <thead><tr><th>ID</th><th>Address</th><th>Waste type</th><th>Description</th><th>Photo</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for r in requests %}
+            <tr>
+              <td>#{{ "%04d"|format(r.id) }}</td><td>{{ r.address }}</td><td>{{ r.waste_type|title }}</td><td>{{ r.description or "—" }}</td>
+              <td>{% if r.photo_filename %}<a class="photo-link" href="{{ url_for('request_photo', request_id=r.id) }}" target="_blank">View photo</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+              <td><span class="status status-{{ r.status }}">{{ r.status|replace("_", " ")|title }}</span></td>
+              <td>
+                {% if r.status == "assigned" %}
+                  <form method="post" action="{{ url_for('collector.update_status', request_id=r.id) }}" class="row-form" data-confirm="Start collection for request #{{ '%04d'|format(r.id) }}?">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="new_status" value="in_progress">
+                    <button class="btn btn-sm btn-primary" type="submit" data-submit-label="Starting…">Start collection</button>
+                  </form>
+                {% elif r.status == "in_progress" %}
+                  <form method="post" action="{{ url_for('collector.update_status', request_id=r.id) }}" class="row-form" data-confirm="Mark request #{{ '%04d'|format(r.id) }} as collected?">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="new_status" value="collected">
+                    <button class="btn btn-sm btn-primary" type="submit" data-submit-label="Completing…">Mark collected</button>
+                  </form>
+                {% else %}<span class="muted">—</span>{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}<p class="empty-state">You have no assigned collection requests yet.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

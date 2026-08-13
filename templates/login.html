@@ -3,7 +3,8 @@
 {% block content %}
 <div class="container container-narrow auth-page">
   <div class="card">
-    <h1>Log in</h1>
+    <h1>{% if portal %}{{ portal|title }} login{% else %}Log in{% endif %}</h1>
+    <p class="page-subtitle">{% if portal %}Use your {{ portal }} account to continue.{% else %}Use your WasteTrack Ghana account to continue.{% endif %}</p>
 
     <form method="post" action="{{ url_for('auth.login') }}" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -16,7 +17,13 @@
       <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
 
-    <p class="form-footnote">Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
+    {% if not portal or portal == "resident" %}
+      <p class="form-footnote">Don't have an account? <a href="{{ url_for('auth.register') }}">Create a resident account</a></p>
+    {% elif portal == "collector" %}
+      <p class="form-footnote">New collector? <a href="{{ url_for('auth.register_collector') }}">Create your collector profile</a></p>
+    {% else %}
+      <p class="form-footnote">Administrator accounts are created by the system owner.</p>
+    {% endif %}
     <a class="back-link" href="{{ url_for('home') }}">&larr; Back to home</a>
   </div>
 </div>

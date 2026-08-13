@@ -9,10 +9,12 @@ Steps 11-15 in one pass:
 - Step 15: create_app(test_config) hook so pytest can run against an
   in-memory database instead of the real SQLite file
 """
-import os
+import secrets
+
 import click
-from flask import Flask, render_template
+from flask import Flask, abort, render_template, request, session
 from flask_login import LoginManager
+from config import Config
 from models import db
 from routes.auth import auth_bp
 from routes.resident import resident_bp
@@ -20,18 +22,12 @@ from routes.admin import admin_bp
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
-    app.config["SECRET_KEY"] = "dev-only-change-me"  # TODO: move to env var before deployment
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "sqlite:///" + os.path.join(app.instance_path, "wastetrack.db")
-    )
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config.from_object(Config)
 
     if test_config:
         # Lets tests/conftest.py swap in an in-memory database etc.
         # BEFORE db.init_app()/create_all() bind to the real file.
         app.config.update(test_config)
-
-    os.makedirs(app.instance_path, exist_ok=True)
 
     db.init_app(app)
     with app.app_context():
@@ -46,7 +42,22 @@ def create_app(test_config=None):
     @login_manager.user_loader
     def load_user(user_id):
         from models.user import User
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
+
+    @app.context_processor
+    def inject_csrf_token():
+        def csrf_token():
+            if "csrf_token" not in session:
+                session["csrf_token"] = secrets.token_urlsafe(32)
+            return session["csrf_token"]
+        return {"csrf_token": csrf_token}
+
+    @app.before_request
+    def protect_against_csrf():
+        if app.config["CSRF_ENABLED"] and request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            submitted_token = request.form.get("csrf_token", "")
+            if not submitted_token or submitted_token != session.get("csrf_token"):
+                abort(400)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(resident_bp)
@@ -55,12 +66,6 @@ def create_app(test_config=None):
     @app.route("/")
     def home():
         return render_template("home.html")
-
-    @app.route("/db-check")
-    def db_check():
-        from models.user import User
-        count = User.query.count()
-        return f"Database connected. Users table has {count} row(s)."
 
     # --- Step 13: custom error pages instead of raw Flask/Werkzeug defaults.
     @app.errorhandler(403)
@@ -76,6 +81,13 @@ def create_app(test_config=None):
             "error.html", code=404, title="Page Not Found",
             message="That page doesn't exist.",
         ), 404
+
+    @app.errorhandler(400)
+    def bad_request(_e):
+        return render_template(
+            "error.html", code=400, title="Invalid Request",
+            message="Your form could not be verified. Please try again.",
+        ), 400
 
     @app.errorhandler(500)
     def server_error(_e):
@@ -120,4 +132,4 @@ def create_app(test_config=None):
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=app.config["DEBUG"])

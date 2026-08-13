@@ -4,7 +4,7 @@ Status follows the state machine in Section 3.4:
 pending -> assigned -> in_progress -> collected
 pending -> cancelled
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from models import db
 
 VALID_STATUSES = ("pending", "assigned", "in_progress", "collected", "cancelled")
@@ -24,8 +24,12 @@ class CollectionRequest(db.Model):
     preferred_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), nullable=False, default="pending")
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
     resident = db.relationship("User", back_populates="requests")
     collector = db.relationship("Collector", back_populates="requests")

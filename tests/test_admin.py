@@ -52,7 +52,7 @@ def test_admin_can_assign_collector_to_pending_request(client, app):
         data={"address": "Addr B", "waste_type": "household", "preferred_date": "2027-01-01", "description": ""},
         follow_redirects=True,
     )
-    client.get("/logout", follow_redirects=True)
+    client.post("/logout", follow_redirects=True)
 
     _login(client, "admin@example.com", "adminpass1")
     client.post(
@@ -75,10 +75,31 @@ def test_admin_can_assign_collector_to_pending_request(client, app):
     assert b"assigned to Kofi Mensah" in response.data
 
     with app.app_context():
+        from models import db
+        from models.collector import Collector
         from models.request import CollectionRequest
-        updated = CollectionRequest.query.get(req_id)
+        updated = db.session.get(CollectionRequest, req_id)
         assert updated.status == "assigned"
         assert updated.collector_id == collector_id
+        assert db.session.get(Collector, collector_id).status == "busy"
+
+    response = client.post(
+        f"/admin/requests/{req_id}/status",
+        data={"new_status": "in_progress"},
+        follow_redirects=True,
+    )
+    assert b"status updated to In Progress" in response.data
+    response = client.post(
+        f"/admin/requests/{req_id}/status",
+        data={"new_status": "collected"},
+        follow_redirects=True,
+    )
+    assert b"status updated to Collected" in response.data
+
+    with app.app_context():
+        from models import db
+        from models.collector import Collector
+        assert db.session.get(Collector, collector_id).status == "available"
 
 
 def test_invalid_status_transition_rejected(client, app):
@@ -90,7 +111,7 @@ def test_invalid_status_transition_rejected(client, app):
         data={"address": "Addr C", "waste_type": "household", "preferred_date": "2027-01-01", "description": ""},
         follow_redirects=True,
     )
-    client.get("/logout", follow_redirects=True)
+    client.post("/logout", follow_redirects=True)
 
     _login(client, "admin@example.com", "adminpass1")
 
@@ -108,6 +129,7 @@ def test_invalid_status_transition_rejected(client, app):
     assert b"Cannot move request" in response.data
 
     with app.app_context():
+        from models import db
         from models.request import CollectionRequest
-        unchanged = CollectionRequest.query.get(req_id)
+        unchanged = db.session.get(CollectionRequest, req_id)
         assert unchanged.status == "pending"

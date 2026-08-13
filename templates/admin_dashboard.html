@@ -25,6 +25,7 @@
     {% endif %}
 
     <form method="post" action="{{ url_for('admin.add_collector') }}" class="inline-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="text" name="name" placeholder="Collector name" required>
       <input type="text" name="phone" placeholder="Phone (optional)">
       <button type="submit" class="btn btn-primary">Add Collector</button>
@@ -58,6 +59,7 @@
                 <td>
                   {% if r.status == "pending" %}
                     <form method="post" action="{{ url_for('admin.assign_collector', request_id=r.id) }}" class="row-form">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <select name="collector_id" required>
                         <option value="" disabled selected>Choose collector</option>
                         {% for c in collectors %}
@@ -67,16 +69,19 @@
                       <button type="submit" class="btn btn-sm btn-primary">Assign</button>
                     </form>
                     <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <input type="hidden" name="new_status" value="cancelled">
                       <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
                     </form>
                   {% elif r.status == "assigned" %}
                     <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <input type="hidden" name="new_status" value="in_progress">
                       <button type="submit" class="btn btn-sm btn-primary">Start Collection</button>
                     </form>
                   {% elif r.status == "in_progress" %}
                     <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <input type="hidden" name="new_status" value="collected">
                       <button type="submit" class="btn btn-sm btn-primary">Mark Collected</button>
                     </form>

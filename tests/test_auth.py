@@ -54,5 +54,5 @@ def test_login_redirects_resident_to_dashboard(client):
 
 
 def test_logout_without_login_redirects_to_login_page(client):
-    response = client.get("/logout", follow_redirects=True)
+    response = client.post("/logout", follow_redirects=True)
     assert b"Log in" in response.data

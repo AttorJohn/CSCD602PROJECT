@@ -1,5 +1,5 @@
 """User model - maps to the USER entity in the ER diagram (Section 3.5)."""
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_login import UserMixin
 from models import db
 
@@ -12,7 +12,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="resident")  # "resident" | "admin"
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # One resident -> many requests (Section 3.5, USER 1 --- * REQUEST)
     requests = db.relationship(

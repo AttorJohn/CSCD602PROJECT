@@ -59,13 +59,17 @@ def assign_collector(request_id):
         flash(f"Request #{req.id:04d} is no longer pending and cannot be assigned.", "error")
         return redirect(url_for("admin.dashboard"))
 
-    collector = Collector.query.get(collector_id) if collector_id else None
+    collector = db.session.get(Collector, collector_id) if collector_id else None
     if not collector:
         flash("Please choose a valid collector.", "error")
+        return redirect(url_for("admin.dashboard"))
+    if collector.status != "available":
+        flash(f"{collector.name} is currently busy and cannot be assigned.", "error")
         return redirect(url_for("admin.dashboard"))
 
     req.collector_id = collector.id
     req.status = "assigned"
+    collector.status = "busy"
     db.session.commit()
     flash(f"Request #{req.id:04d} assigned to {collector.name}.", "success")
     return redirect(url_for("admin.dashboard"))
@@ -86,6 +90,8 @@ def update_status(request_id):
         return redirect(url_for("admin.dashboard"))
 
     req.status = new_status
+    if new_status == "collected" and req.collector:
+        req.collector.status = "available"
     db.session.commit()
     flash(
         f"Request #{req.id:04d} status updated to {new_status.replace('_', ' ').title()}.",

@@ -14,6 +14,7 @@ def app():
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "SECRET_KEY": "test-secret",
+        "CSRF_ENABLED": False,
     })
     yield flask_app
 

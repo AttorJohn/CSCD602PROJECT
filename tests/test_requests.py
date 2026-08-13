@@ -68,7 +68,7 @@ def test_resident_cannot_see_another_residents_requests(client):
         data={"address": "Addr A", "waste_type": "household", "preferred_date": "2027-01-01", "description": ""},
         follow_redirects=True,
     )
-    client.get("/logout", follow_redirects=True)
+    client.post("/logout", follow_redirects=True)
 
     _register_and_login(client, email="second@example.com")
     response = client.get("/dashboard/")

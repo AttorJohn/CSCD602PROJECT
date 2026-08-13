@@ -105,6 +105,14 @@ a { color: var(--color-primary); }
 }
 .nav-links .nav-cta:hover { background: var(--color-primary-dark); color: #fff; }
 .nav-links .nav-link-muted { color: #94a3b8; }
+.logout-form { margin: 0; }
+.logout-form .nav-link-muted {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
 
 /* ---------- Flash messages ---------- */
 .flash-wrap {

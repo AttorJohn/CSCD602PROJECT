@@ -12,6 +12,9 @@ body {
 .site-header {
   background: #1f3b57;
   padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .site-header .brand {
   color: #ffffff;
@@ -19,6 +22,13 @@ body {
   font-size: 1.2rem;
   text-decoration: none;
 }
+.nav-links a, .nav-links .nav-user {
+  color: #dce8f4;
+  text-decoration: none;
+  margin-left: 16px;
+  font-size: 0.9rem;
+}
+.nav-links a:hover { text-decoration: underline; }
 
 .container {
   max-width: 480px;
@@ -62,3 +72,49 @@ form button:hover { background: #24486b; }
 .flash { padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; font-size: 0.9rem; }
 .flash-error { background: #fbe3e3; color: #a12626; }
 .flash-success { background: #e1f5e1; color: #256029; }
+
+/* Wider layout for dashboards/tables, narrower default is for auth forms */
+.container-wide { max-width: 800px; }
+
+.button-link {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #2e5f8a;
+  color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.button-link.disabled {
+  background: #b7c3cf;
+  cursor: not-allowed;
+}
+.muted { color: #7b8794; margin-left: 6px; }
+
+.requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+.requests-table th, .requests-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e4e7eb;
+}
+.requests-table th { color: #616e7c; font-weight: 600; }
+
+.status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.status-pending { background: #fbe6d4; color: #8a5320; }
+.status-assigned { background: #dceaf7; color: #23486b; }
+.status-in_progress { background: #e6dcf7; color: #4a2f80; }
+.status-collected { background: #ddf2dd; color: #256029; }
+.status-cancelled { background: #f7d6d6; color: #a12626; }
+
+.empty-state { color: #7b8794; font-style: italic; }

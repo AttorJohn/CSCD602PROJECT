@@ -62,7 +62,9 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
             flash(f"Welcome back, {user.name}.", "success")
-            return redirect(url_for("home"))
+            if user.role == "resident":
+                return redirect(url_for("resident.dashboard"))
+            return redirect(url_for("home"))  # admin dashboard arrives in Step 11
 
         flash("Invalid email or password.", "error")
         return render_template("login.html", email=email)

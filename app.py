@@ -1,10 +1,8 @@
 """
 WasteTrack Ghana - Entry point.
 
-Step 8 adds role-based authorisation (FR-03, NFR-03). Administrators
-are never created through the public /register form - only through
-the `flask create-admin` CLI command below - so nobody can grant
-themselves admin access through the UI.
+Step 9 adds the resident dashboard (FR-06, FR-10), replacing the
+temporary /resident/ping check from Step 8 with a real page.
 """
 import os
 import click
@@ -12,7 +10,8 @@ from flask import Flask
 from flask_login import LoginManager
 from models import db
 from routes.auth import auth_bp
-from routes.decorators import admin_required, resident_required
+from routes.resident import resident_bp
+from routes.decorators import admin_required
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -40,6 +39,7 @@ def create_app():
         return User.query.get(int(user_id))
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(resident_bp)
 
     @app.route("/")
     def home():
@@ -51,14 +51,8 @@ def create_app():
         count = User.query.count()
         return f"Database connected. Users table has {count} row(s)."
 
-    # --- Temporary verification routes for Step 8 only.
-    # Replaced by the real resident dashboard (Step 10) and admin
-    # dashboard (Step 11-12).
-    @app.route("/resident/ping")
-    @resident_required
-    def resident_ping():
-        return "Resident access confirmed."
-
+    # --- Temporary verification route for Step 8, still needed until
+    # the real admin dashboard lands in Step 11.
     @app.route("/admin/ping")
     @admin_required
     def admin_ping():

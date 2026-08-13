@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard - WasteTrack Ghana{% endblock %}
+{% block container_class %}container-wide{% endblock %}
+{% block content %}
+  <h1>Welcome, {{ current_user.name }}</h1>
+
+  <p>
+    <span class="button-link disabled">+ New Collection Request</span>
+    <small class="muted">(coming in Step 10)</small>
+  </p>
+
+  <h2>My Requests</h2>
+
+  {% if requests %}
+    <table class="requests-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Preferred Date</th>
+          <th>Waste Type</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in requests %}
+          <tr>
+            <td>#{{ "%04d"|format(r.id) }}</td>
+            <td>{{ r.preferred_date.strftime("%d %b %Y") }}</td>
+            <td>{{ r.waste_type|capitalize }}</td>
+            <td><span class="status status-{{ r.status }}">{{ r.status|replace("_", " ")|title }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty-state">You haven't submitted any collection requests yet.</p>
+  {% endif %}
+{% endblock %}

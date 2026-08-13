@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}WasteTrack Ghana{% endblock %}
+{% block content %}
+  <h1>WasteTrack Ghana</h1>
+  <p>Request and track household waste collection online — no more calling or flagging down collectors.</p>
+
+  {% if current_user.is_authenticated %}
+    {% if current_user.role == "resident" %}
+      <p><a class="button-link" href="{{ url_for('resident.dashboard') }}">Go to My Dashboard</a></p>
+    {% elif current_user.role == "admin" %}
+      <p><a class="button-link" href="{{ url_for('admin.dashboard') }}">Go to Admin Dashboard</a></p>
+    {% endif %}
+  {% else %}
+    <p>
+      <a class="button-link" href="{{ url_for('auth.login') }}">Login</a>
+      <a class="button-link secondary" href="{{ url_for('auth.register') }}">Register</a>
+    </p>
+  {% endif %}
+{% endblock %}

@@ -13,6 +13,8 @@
       {% if current_user.is_authenticated %}
         {% if current_user.role == "resident" %}
           <a href="{{ url_for('resident.dashboard') }}">Dashboard</a>
+        {% elif current_user.role == "admin" %}
+          <a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
         {% endif %}
         <span class="nav-user">{{ current_user.name }}</span>
         <a href="{{ url_for('auth.logout') }}">Logout</a>

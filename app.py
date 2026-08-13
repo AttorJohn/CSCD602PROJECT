@@ -1,25 +1,35 @@
 """
 WasteTrack Ghana - Entry point.
 
-Step 9 adds the resident dashboard (FR-06, FR-10), replacing the
-temporary /resident/ping check from Step 8 with a real page.
+Steps 11-15 in one pass:
+- Step 11: admin dashboard (replaces the /admin/ping stub)
+- Step 12: collector assignment / status changes (routes/admin.py)
+- Step 13: custom 403/404/500 error pages
+- Step 14: UI refinement (see templates/static, not this file)
+- Step 15: create_app(test_config) hook so pytest can run against an
+  in-memory database instead of the real SQLite file
 """
 import os
 import click
-from flask import Flask
+from flask import Flask, render_template
 from flask_login import LoginManager
 from models import db
 from routes.auth import auth_bp
 from routes.resident import resident_bp
-from routes.decorators import admin_required
+from routes.admin import admin_bp
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config["SECRET_KEY"] = "dev-only-change-me"  # TODO: move to env var before deployment
     app.config["SQLALCHEMY_DATABASE_URI"] = (
         "sqlite:///" + os.path.join(app.instance_path, "wastetrack.db")
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    if test_config:
+        # Lets tests/conftest.py swap in an in-memory database etc.
+        # BEFORE db.init_app()/create_all() bind to the real file.
+        app.config.update(test_config)
 
     os.makedirs(app.instance_path, exist_ok=True)
 
@@ -40,10 +50,11 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(resident_bp)
+    app.register_blueprint(admin_bp)
 
     @app.route("/")
     def home():
-        return "Hello, WasteTrack Ghana! The Flask app is running."
+        return render_template("home.html")
 
     @app.route("/db-check")
     def db_check():
@@ -51,12 +62,27 @@ def create_app():
         count = User.query.count()
         return f"Database connected. Users table has {count} row(s)."
 
-    # --- Temporary verification route for Step 8, still needed until
-    # the real admin dashboard lands in Step 11.
-    @app.route("/admin/ping")
-    @admin_required
-    def admin_ping():
-        return "Admin access confirmed."
+    # --- Step 13: custom error pages instead of raw Flask/Werkzeug defaults.
+    @app.errorhandler(403)
+    def forbidden(_e):
+        return render_template(
+            "error.html", code=403, title="Forbidden",
+            message="You don't have permission to view this page.",
+        ), 403
+
+    @app.errorhandler(404)
+    def not_found(_e):
+        return render_template(
+            "error.html", code=404, title="Page Not Found",
+            message="That page doesn't exist.",
+        ), 404
+
+    @app.errorhandler(500)
+    def server_error(_e):
+        return render_template(
+            "error.html", code=500, title="Something Went Wrong",
+            message="An unexpected error occurred. Please try again.",
+        ), 500
 
     # --- CLI command to create/promote an admin account.
     # Run from the terminal (app must NOT be running at the same time):

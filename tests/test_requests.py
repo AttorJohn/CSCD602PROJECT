@@ -1,4 +1,6 @@
 """Tests for collection-request submission and validation (FR-04, FR-05, FR-06)."""
+from io import BytesIO
+import os
 
 
 def _register_and_login(client, email="resident@example.com"):
@@ -59,6 +61,30 @@ def test_submit_valid_request_appears_on_dashboard(client):
     assert b"submitted successfully" in response.data
     assert b"#0001" in response.data
     assert b"Pending" in response.data
+
+
+def test_request_photo_upload_is_saved_and_audited(client, app):
+    _register_and_login(client)
+    response = client.post(
+        "/dashboard/new",
+        data={
+            "address": "12 Ring Rd", "waste_type": "household",
+            "preferred_date": "2027-01-01", "description": "Old sofa",
+            "photo": (BytesIO(b"\x89PNG\r\n\x1a\n"), "sofa.png", "image/png"),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+    assert b"submitted successfully" in response.data
+    assert b"View photo" in response.data
+
+    with app.app_context():
+        from models.audit import AuditLog
+        from models.request import CollectionRequest
+        collection_request = CollectionRequest.query.first()
+        assert collection_request.photo_filename
+        assert os.path.isfile(os.path.join(app.config["UPLOAD_FOLDER"], collection_request.photo_filename))
+        assert AuditLog.query.filter_by(action="Created collection request").count() == 1
 
 
 def test_resident_cannot_see_another_residents_requests(client):

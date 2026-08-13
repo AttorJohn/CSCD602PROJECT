@@ -18,3 +18,4 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CSRF_ENABLED = True
     DEBUG = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB upload limit

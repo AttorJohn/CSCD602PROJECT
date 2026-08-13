@@ -6,10 +6,12 @@ FR-09 (update status), enforcing the legal transitions from the
 request state diagram (Project Documentation, Section 3.4).
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import current_user
 from routes.decorators import admin_required
 from models import db
 from models.request import CollectionRequest, VALID_STATUSES
 from models.collector import Collector
+from models.audit import AuditLog, record_audit
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -43,6 +45,7 @@ def dashboard():
     }
     collectors = Collector.query.order_by(Collector.name).all()
     available_collectors = [collector for collector in collectors if collector.status == "available"]
+    audit_logs = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(20).all()
     return render_template(
         "admin_dashboard.html",
         requests=requests,
@@ -51,6 +54,7 @@ def dashboard():
         status_counts=status_counts,
         statuses=VALID_STATUSES,
         selected_status=selected_status,
+        audit_logs=audit_logs,
     )
 
 
@@ -66,6 +70,7 @@ def add_collector():
 
     collector = Collector(name=name, phone=phone or None, status="available")
     db.session.add(collector)
+    record_audit(current_user, "Added collector", details=collector.name)
     db.session.commit()
     flash(f"Collector '{name}' added.", "success")
     return redirect(url_for("admin.dashboard"))
@@ -92,6 +97,7 @@ def assign_collector(request_id):
     req.collector_id = collector.id
     req.status = "assigned"
     collector.status = "busy"
+    record_audit(current_user, "Assigned collector", req.id, collector.name)
     db.session.commit()
     flash(f"Request #{req.id:04d} assigned to {collector.name}.", "success")
     return redirect(url_for("admin.dashboard"))
@@ -111,9 +117,11 @@ def update_status(request_id):
         )
         return redirect(url_for("admin.dashboard"))
 
+    previous_status = req.status
     req.status = new_status
     if new_status == "collected" and req.collector:
         req.collector.status = "available"
+    record_audit(current_user, "Updated request status", req.id, f"{previous_status} -> {new_status}")
     db.session.commit()
     flash(
         f"Request #{req.id:04d} status updated to {new_status.replace('_', ' ').title()}.",

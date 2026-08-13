@@ -9,11 +9,13 @@ Steps 11-15 in one pass:
 - Step 15: create_app(test_config) hook so pytest can run against an
   in-memory database instead of the real SQLite file
 """
+import os
 import secrets
 
 import click
-from flask import Flask, abort, render_template, request, session
-from flask_login import LoginManager
+from flask import Flask, abort, render_template, request, send_from_directory, session
+from flask_login import LoginManager, current_user, login_required
+from sqlalchemy import inspect, text
 from config import Config
 from models import db
 from routes.auth import auth_bp
@@ -29,9 +31,17 @@ def create_app(test_config=None):
         # BEFORE db.init_app()/create_all() bind to the real file.
         app.config.update(test_config)
 
+    app.config.setdefault("UPLOAD_FOLDER", os.path.join(app.instance_path, "uploads"))
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
     db.init_app(app)
     with app.app_context():
         db.create_all()  # creates users/requests/collectors tables if they don't exist yet
+        # Lightweight compatibility upgrade for existing local SQLite databases.
+        request_columns = {column["name"] for column in inspect(db.engine).get_columns("requests")}
+        if "photo_filename" not in request_columns:
+            db.session.execute(text("ALTER TABLE requests ADD COLUMN photo_filename VARCHAR(255)"))
+            db.session.commit()
 
     login_manager = LoginManager()
     login_manager.login_view = "auth.login"
@@ -67,6 +77,18 @@ def create_app(test_config=None):
     def home():
         return render_template("home.html")
 
+    @app.route("/requests/<int:request_id>/photo")
+    @login_required
+    def request_photo(request_id):
+        from models.request import CollectionRequest
+
+        collection_request = db.get_or_404(CollectionRequest, request_id)
+        if current_user.role != "admin" and collection_request.user_id != current_user.id:
+            abort(403)
+        if not collection_request.photo_filename:
+            abort(404)
+        return send_from_directory(app.config["UPLOAD_FOLDER"], collection_request.photo_filename)
+
     # --- Step 13: custom error pages instead of raw Flask/Werkzeug defaults.
     @app.errorhandler(403)
     def forbidden(_e):
@@ -95,6 +117,13 @@ def create_app(test_config=None):
             "error.html", code=500, title="Something Went Wrong",
             message="An unexpected error occurred. Please try again.",
         ), 500
+
+    @app.errorhandler(413)
+    def file_too_large(_e):
+        return render_template(
+            "error.html", code=413, title="File Too Large",
+            message="Uploaded images must be 5 MB or smaller.",
+        ), 413
 
     # --- CLI command to create/promote an admin account.
     # Run from the terminal (app must NOT be running at the same time):

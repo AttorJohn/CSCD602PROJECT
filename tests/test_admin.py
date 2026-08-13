@@ -100,6 +100,9 @@ def test_admin_can_assign_collector_to_pending_request(client, app):
         from models import db
         from models.collector import Collector
         assert db.session.get(Collector, collector_id).status == "available"
+        from models.audit import AuditLog
+        assert AuditLog.query.filter_by(action="Assigned collector").count() == 1
+        assert AuditLog.query.filter_by(action="Updated request status").count() == 2
 
 
 def test_invalid_status_transition_rejected(client, app):

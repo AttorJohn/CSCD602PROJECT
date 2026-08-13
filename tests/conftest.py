@@ -9,12 +9,13 @@ from app import create_app
 
 
 @pytest.fixture
-def app():
+def app(tmp_path):
     flask_app = create_app({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "SECRET_KEY": "test-secret",
         "CSRF_ENABLED": False,
+        "UPLOAD_FOLDER": str(tmp_path / "uploads"),
     })
     yield flask_app
 

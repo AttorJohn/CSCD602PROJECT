@@ -5,7 +5,7 @@
   <div class="card">
     <h1>New Collection Request</h1>
 
-    <form method="post" action="{{ url_for('resident.new_request') }}" novalidate>
+    <form method="post" action="{{ url_for('resident.new_request') }}" enctype="multipart/form-data" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="address">Address</label>
       <input type="text" id="address" name="address" value="{{ address }}" required>
@@ -23,6 +23,10 @@
 
       <label for="description">Description</label>
       <textarea id="description" name="description" rows="4">{{ description }}</textarea>
+
+      <label for="photo">Photo of the waste <span class="optional-label">(optional)</span></label>
+      <input type="file" id="photo" name="photo" accept="image/png,image/jpeg,image/webp">
+      <p class="field-help">Upload a JPG, PNG, or WebP image up to 5 MB to help the collector identify the waste.</p>
 
       <button type="submit" class="btn btn-primary btn-block">Submit Request</button>
     </form>

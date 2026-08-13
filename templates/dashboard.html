@@ -22,6 +22,7 @@
               <th>Preferred Date</th>
               <th>Waste Type</th>
               <th>Description</th>
+              <th>Photo</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -33,6 +34,7 @@
                 <td>{{ r.preferred_date.strftime("%d %b %Y") }}</td>
                 <td>{{ r.waste_type|capitalize }}</td>
                 <td>{{ r.description or "—" }}</td>
+                <td>{% if r.photo_filename %}<a class="photo-link" href="{{ url_for('request_photo', request_id=r.id) }}" target="_blank">View photo</a>{% else %}<span class="muted">—</span>{% endif %}</td>
                 <td><span class="status status-{{ r.status }}">{{ r.status|replace("_", " ")|title }}</span></td>
                 <td>
                   {% if r.status == "pending" %}

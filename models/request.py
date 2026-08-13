@@ -21,6 +21,7 @@ class CollectionRequest(db.Model):
     address = db.Column(db.String(255), nullable=False)
     waste_type = db.Column(db.String(50), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    photo_filename = db.Column(db.String(255), nullable=True)
     preferred_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), nullable=False, default="pending")
 

@@ -9,3 +9,4 @@ db = SQLAlchemy()
 from models.user import User  # noqa: E402,F401
 from models.collector import Collector  # noqa: E402,F401
 from models.request import CollectionRequest  # noqa: E402,F401
+from models.audit import AuditLog  # noqa: E402,F401

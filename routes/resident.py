@@ -5,7 +5,8 @@ FR-06 (view own requests) and FR-10 (resident dashboard).
 """
 from datetime import date, datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import current_user
+from flask_login import current_user, logout_user
+from werkzeug.security import check_password_hash
 from routes.decorators import resident_required
 from models import db
 from models.request import CollectionRequest, VALID_WASTE_TYPES
@@ -86,3 +87,24 @@ def new_request():
         preferred_date="",
         description="",
     )
+
+
+@resident_bp.route("/account/delete", methods=["POST"])
+@resident_required
+def delete_account():
+    """Permanently remove a resident and their request history."""
+    password = request.form.get("password", "")
+    if not check_password_hash(current_user.password_hash, password):
+        flash("Your password was incorrect. Your account was not deleted.", "error")
+        return redirect(url_for("resident.dashboard"))
+
+    # Requests belong to the resident, so remove them before the account to
+    # preserve foreign-key integrity and honour the permanent-delete warning.
+    user = current_user._get_current_object()
+    for collection_request in user.requests.all():
+        db.session.delete(collection_request)
+    db.session.delete(user)
+    db.session.commit()
+    logout_user()
+    flash("Your account and collection-request history have been deleted.", "success")
+    return redirect(url_for("home"))

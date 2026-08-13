@@ -21,6 +21,7 @@
               <th>ID</th>
               <th>Preferred Date</th>
               <th>Waste Type</th>
+              <th>Description</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -30,6 +31,7 @@
                 <td>#{{ "%04d"|format(r.id) }}</td>
                 <td>{{ r.preferred_date.strftime("%d %b %Y") }}</td>
                 <td>{{ r.waste_type|capitalize }}</td>
+                <td>{{ r.description or "—" }}</td>
                 <td><span class="status status-{{ r.status }}">{{ r.status|replace("_", " ")|title }}</span></td>
               </tr>
             {% endfor %}
@@ -39,6 +41,17 @@
     {% else %}
       <p class="empty-state">You haven't submitted any collection requests yet.</p>
     {% endif %}
+  </div>
+
+  <div class="card danger-zone">
+    <h2>Delete account</h2>
+    <p>Deleting your account permanently removes your profile and all collection-request history. This cannot be undone.</p>
+    <form method="post" action="{{ url_for('resident.delete_account') }}" data-confirm="Delete your account and all request history permanently?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="delete-password">Confirm your password</label>
+      <input type="password" id="delete-password" name="password" autocomplete="current-password" required>
+      <button type="submit" class="btn btn-danger" data-submit-label="Deleting account…">Delete my account</button>
+    </form>
   </div>
 </div>
 {% endblock %}

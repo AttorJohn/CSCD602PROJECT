@@ -29,7 +29,13 @@ ALLOWED_TRANSITIONS = {
 def dashboard():
     requests = CollectionRequest.query.order_by(CollectionRequest.created_at.desc()).all()
     collectors = Collector.query.order_by(Collector.name).all()
-    return render_template("admin_dashboard.html", requests=requests, collectors=collectors)
+    available_collectors = [collector for collector in collectors if collector.status == "available"]
+    return render_template(
+        "admin_dashboard.html",
+        requests=requests,
+        collectors=collectors,
+        available_collectors=available_collectors,
+    )
 
 
 @admin_bp.route("/collectors/new", methods=["POST"])

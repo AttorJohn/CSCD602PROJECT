@@ -74,3 +74,39 @@ def test_resident_cannot_see_another_residents_requests(client):
     response = client.get("/dashboard/")
     assert b"#0001" not in response.data
     assert b"submitted any collection requests" in response.data
+
+
+def test_resident_can_delete_their_account_and_request_history(client, app):
+    _register_and_login(client, email="delete-me@example.com")
+    client.post(
+        "/dashboard/new",
+        data={"address": "12 Ring Rd", "waste_type": "household", "preferred_date": "2027-01-01", "description": "Old sofa"},
+        follow_redirects=True,
+    )
+
+    response = client.post(
+        "/dashboard/account/delete",
+        data={"password": "password123"},
+        follow_redirects=True,
+    )
+    assert b"account and collection-request history have been deleted" in response.data
+
+    with app.app_context():
+        from models.request import CollectionRequest
+        from models.user import User
+        assert User.query.filter_by(email="delete-me@example.com").first() is None
+        assert CollectionRequest.query.count() == 0
+
+
+def test_account_deletion_requires_the_current_password(client, app):
+    _register_and_login(client, email="keep-me@example.com")
+    response = client.post(
+        "/dashboard/account/delete",
+        data={"password": "incorrect"},
+        follow_redirects=True,
+    )
+    assert b"password was incorrect" in response.data
+
+    with app.app_context():
+        from models.user import User
+        assert User.query.filter_by(email="keep-me@example.com").first() is not None

@@ -43,6 +43,7 @@
               <th>ID</th>
               <th>Resident</th>
               <th>Waste Type</th>
+              <th>Description</th>
               <th>Status</th>
               <th>Collector</th>
               <th>Action</th>
@@ -54,36 +55,40 @@
                 <td>#{{ "%04d"|format(r.id) }}</td>
                 <td>{{ r.resident.name }}</td>
                 <td>{{ r.waste_type|capitalize }}</td>
+                <td>{{ r.description or "—" }}</td>
                 <td><span class="status status-{{ r.status }}">{{ r.status|replace("_", " ")|title }}</span></td>
                 <td>{{ r.collector.name if r.collector else "—" }}</td>
                 <td>
                   {% if r.status == "pending" %}
                     <form method="post" action="{{ url_for('admin.assign_collector', request_id=r.id) }}" class="row-form">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                      <select name="collector_id" required>
-                        <option value="" disabled selected>Choose collector</option>
-                        {% for c in collectors %}
+                      <select name="collector_id" aria-label="Choose collector for request #{{ '%04d'|format(r.id) }}" required {% if not available_collectors %}disabled{% endif %}>
+                        <option value="" disabled selected>{% if available_collectors %}Choose available collector{% else %}No collectors available{% endif %}</option>
+                        {% for c in available_collectors %}
                           <option value="{{ c.id }}">{{ c.name }}</option>
                         {% endfor %}
                       </select>
-                      <button type="submit" class="btn btn-sm btn-primary">Assign</button>
+                      <button type="submit" class="btn btn-sm btn-primary" {% if not available_collectors %}disabled{% endif %} data-submit-label="Assigning…">Assign</button>
                     </form>
-                    <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form">
+                    <p class="action-description">Assign an available collector, or cancel before collection begins.</p>
+                    <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form" data-confirm="Cancel request #{{ '%04d'|format(r.id) }}?">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <input type="hidden" name="new_status" value="cancelled">
-                      <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+                      <button type="submit" class="btn btn-sm btn-danger" data-submit-label="Cancelling…">Cancel request</button>
                     </form>
                   {% elif r.status == "assigned" %}
-                    <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form">
+                    <p class="action-description">Confirm that the assigned collector has started this pickup.</p>
+                    <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form" data-confirm="Mark request #{{ '%04d'|format(r.id) }} as collection in progress?">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <input type="hidden" name="new_status" value="in_progress">
-                      <button type="submit" class="btn btn-sm btn-primary">Start Collection</button>
+                      <button type="submit" class="btn btn-sm btn-primary" data-submit-label="Starting…">Start collection</button>
                     </form>
                   {% elif r.status == "in_progress" %}
-                    <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form">
+                    <p class="action-description">Confirm pickup is complete; the collector will become available again.</p>
+                    <form method="post" action="{{ url_for('admin.update_status', request_id=r.id) }}" class="row-form" data-confirm="Mark request #{{ '%04d'|format(r.id) }} as collected?">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <input type="hidden" name="new_status" value="collected">
-                      <button type="submit" class="btn btn-sm btn-primary">Mark Collected</button>
+                      <button type="submit" class="btn btn-sm btn-primary" data-submit-label="Completing…">Mark collected</button>
                     </form>
                   {% else %}
                     <span class="muted">—</span>

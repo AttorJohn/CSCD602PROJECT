@@ -1,9 +1,10 @@
 """User model - maps to the USER entity in the ER diagram (Section 3.5)."""
 from datetime import datetime
+from flask_login import UserMixin
 from models import db
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)

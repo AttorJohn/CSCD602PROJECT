@@ -5,8 +5,7 @@
   <h1>Welcome, {{ current_user.name }}</h1>
 
   <p>
-    <span class="button-link disabled">+ New Collection Request</span>
-    <small class="muted">(coming in Step 10)</small>
+    <a class="button-link" href="{{ url_for('resident.new_request') }}">+ New Collection Request</a>
   </p>
 
   <h2>My Requests</h2>

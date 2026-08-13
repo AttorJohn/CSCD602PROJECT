@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}New Collection Request - WasteTrack Ghana{% endblock %}
+{% block content %}
+  <h1>New Collection Request</h1>
+
+  <form method="post" action="{{ url_for('resident.new_request') }}" novalidate>
+    <label for="address">Address</label>
+    <input type="text" id="address" name="address" value="{{ address }}" required>
+
+    <label for="waste_type">Waste Type</label>
+    <select id="waste_type" name="waste_type" required>
+      <option value="" disabled {% if not waste_type %}selected{% endif %}>Select waste type</option>
+      {% for wt in waste_types %}
+        <option value="{{ wt }}" {% if wt == waste_type %}selected{% endif %}>{{ wt|capitalize }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="preferred_date">Preferred Date</label>
+    <input type="date" id="preferred_date" name="preferred_date" value="{{ preferred_date }}" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" name="description" rows="4">{{ description }}</textarea>
+
+    <button type="submit">Submit Request</button>
+  </form>
+
+  <p><a href="{{ url_for('resident.dashboard') }}">&larr; Back to dashboard</a></p>
+{% endblock %}

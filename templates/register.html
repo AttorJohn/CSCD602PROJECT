@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Register - WasteTrack Ghana{% endblock %}
+{% block content %}
+  <h1>Create an account</h1>
+
+  <form method="post" action="{{ url_for('auth.register') }}" novalidate>
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value="{{ name }}" required>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" value="{{ email }}" required>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required minlength="6">
+
+    <button type="submit">Register</button>
+  </form>
+
+  <p>Already have an account? <a href="{{ url_for('home') }}">Log in</a> (coming in Step 7)</p>
+{% endblock %}

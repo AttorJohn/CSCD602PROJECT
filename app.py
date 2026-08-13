@@ -1,13 +1,13 @@
 """
 WasteTrack Ghana - Entry point.
 
-Step 5 adds the database: SQLAlchemy + SQLite, wired up to the
-User / CollectionRequest / Collector models in models/, matching the
-ER diagram in the Project Documentation (Section 3.5).
+Step 6 adds registration via the auth blueprint (routes/auth.py),
+implementing FR-01 and NFR-01 (passwords hashed, never stored plain).
 """
 import os
 from flask import Flask
 from models import db
+from routes.auth import auth_bp
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -22,6 +22,8 @@ def create_app():
     db.init_app(app)
     with app.app_context():
         db.create_all()  # creates users/requests/collectors tables if they don't exist yet
+
+    app.register_blueprint(auth_bp)
 
     @app.route("/")
     def home():

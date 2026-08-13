@@ -1,17 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Login - WasteTrack Ghana{% endblock %}
 {% block content %}
-  <h1>Log in</h1>
+<div class="container container-narrow auth-page">
+  <div class="card">
+    <h1>Log in</h1>
 
-  <form method="post" action="{{ url_for('auth.login') }}" novalidate>
-    <label for="email">Email</label>
-    <input type="email" id="email" name="email" value="{{ email }}" required>
+    <form method="post" action="{{ url_for('auth.login') }}" novalidate>
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="{{ email }}" required>
 
-    <label for="password">Password</label>
-    <input type="password" id="password" name="password" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
 
-    <button type="submit">Login</button>
-  </form>
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </form>
 
-  <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
+    <p class="form-footnote">Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
+  </div>
+</div>
 {% endblock %}

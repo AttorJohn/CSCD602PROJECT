@@ -1,20 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Register - WasteTrack Ghana{% endblock %}
 {% block content %}
-  <h1>Create an account</h1>
+<div class="container container-narrow auth-page">
+  <div class="card">
+    <h1>Create an account</h1>
 
-  <form method="post" action="{{ url_for('auth.register') }}" novalidate>
-    <label for="name">Name</label>
-    <input type="text" id="name" name="name" value="{{ name }}" required>
+    <form method="post" action="{{ url_for('auth.register') }}" novalidate>
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" value="{{ name }}" required>
 
-    <label for="email">Email</label>
-    <input type="email" id="email" name="email" value="{{ email }}" required>
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="{{ email }}" required>
 
-    <label for="password">Password</label>
-    <input type="password" id="password" name="password" required minlength="6">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required minlength="6">
 
-    <button type="submit">Register</button>
-  </form>
+      <button type="submit" class="btn btn-primary btn-block">Register</button>
+    </form>
 
-  <p>Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+    <p class="form-footnote">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </div>
+</div>
 {% endblock %}

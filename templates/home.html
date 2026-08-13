@@ -1,19 +1,51 @@
 {% extends "base.html" %}
 {% block title %}WasteTrack Ghana{% endblock %}
 {% block content %}
-  <h1>WasteTrack Ghana</h1>
-  <p>Request and track household waste collection online — no more calling or flagging down collectors.</p>
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">Household Waste Collection</span>
+      <h1>Request a pickup. Track it to done.</h1>
+      <p class="hero-lead">
+        WasteTrack Ghana replaces phone calls and flagged-down collectors
+        with a simple online request — submit it in under a minute, and
+        watch it move from Pending to Collected.
+      </p>
+      {% if current_user.is_authenticated %}
+        {% if current_user.role == "resident" %}
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="{{ url_for('resident.dashboard') }}">Go to my dashboard</a>
+          </div>
+        {% elif current_user.role == "admin" %}
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="{{ url_for('admin.dashboard') }}">Go to admin dashboard</a>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="{{ url_for('auth.login') }}">Login</a>
+          <a class="btn btn-outline" href="{{ url_for('auth.register') }}">Create an account</a>
+        </div>
+      {% endif %}
+    </div>
+  </section>
 
-  {% if current_user.is_authenticated %}
-    {% if current_user.role == "resident" %}
-      <p><a class="button-link" href="{{ url_for('resident.dashboard') }}">Go to My Dashboard</a></p>
-    {% elif current_user.role == "admin" %}
-      <p><a class="button-link" href="{{ url_for('admin.dashboard') }}">Go to Admin Dashboard</a></p>
-    {% endif %}
-  {% else %}
-    <p>
-      <a class="button-link" href="{{ url_for('auth.login') }}">Login</a>
-      <a class="button-link secondary" href="{{ url_for('auth.register') }}">Register</a>
-    </p>
-  {% endif %}
+  <section class="steps">
+    <div class="steps-inner">
+      <div class="step">
+        <span class="step-number">1</span>
+        <h3>Submit a request</h3>
+        <p>Add your address, waste type and a preferred date. Takes under a minute.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">2</span>
+        <h3>Get assigned a collector</h3>
+        <p>An administrator reviews the request and assigns it to a collector.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">3</span>
+        <h3>Track it to completion</h3>
+        <p>Watch the status move from Pending to Assigned to Collected — no follow-up calls.</p>
+      </div>
+    </div>
+  </section>
 {% endblock %}

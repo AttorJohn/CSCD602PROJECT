@@ -48,6 +48,32 @@ def create_app(test_config=None):
             db.session.execute(text("ALTER TABLE collectors ADD COLUMN user_id INTEGER"))
             db.session.commit()
 
+        # Auto-seed an admin account from environment variables on every startup.
+    # Necessary on Render's free tier: no persistent disk means the SQLite
+    # file is rebuilt from scratch on every redeploy, so this can't be a
+    # one-off script — it has to run idempotently on every boot.
+    with app.app_context():
+        admin_email = os.environ.get("ADMIN_EMAIL")
+        admin_password = os.environ.get("ADMIN_PASSWORD")
+        if admin_email and admin_password:
+            from models.user import User
+            from werkzeug.security import generate_password_hash
+
+            admin_email = admin_email.strip().lower()
+            existing = User.query.filter_by(email=admin_email).first()
+            if existing:
+                if existing.role != "admin":
+                    existing.role = "admin"
+                    db.session.commit()
+            else:
+                db.session.add(User(
+                    name=os.environ.get("ADMIN_NAME", "Administrator"),
+                    email=admin_email,
+                    password_hash=generate_password_hash(admin_password),
+                    role="admin",
+                ))
+                db.session.commit()
+
     login_manager = LoginManager()
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Please log in to access that page."
